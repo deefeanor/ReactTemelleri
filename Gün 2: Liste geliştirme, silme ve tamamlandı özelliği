@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>React Temelleri</title>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      // Gün 2
+      // Abdullah abi bugün listeyi biraz daha geliştirdim.
+
+      function Welcome(props) {
+        return <h3>Hoş geldin {props.name}</h3>;
+      }
+
+      function App() {
+        const [count, setCount] = React.useState(0);
+
+        const [tasks, setTasks] = React.useState([
+          { text: "React", done: false },
+          { text: "JSX", done: false }
+        ]);
+
+        const [newTask, setNewTask] = React.useState("");
+        const [error, setError] = React.useState("");
+
+        const addTask = () => {
+          if (newTask.trim() === "") {
+            setError("Boş ekleme yapmamaya çalıştım.");
+            return;
+          }
+
+          setTasks([...tasks, { text: newTask, done: false }]);
+          setNewTask("");
+          setError("");
+        };
+
+        const deleteTask = (index) => {
+          const updated = tasks.filter((_, i) => i !== index);
+          setTasks(updated);
+        };
+
+        const toggleDone = (index) => {
+          const updated = tasks.map((task, i) =>
+            i === index ? { ...task, done: !task.done } : task
+          );
+          setTasks(updated);
+        };
+
+        const clearCompleted = () => {
+          const updated = tasks.filter(task => !task.done);
+          setTasks(updated);
+        };
+
+        return (
+          <div>
+            <h1>React Temelleri</h1>
+            <p>State ve liste mantığını biraz daha ilerlettim.</p>
+
+            <Welcome name="Abdullah Abi" />
+
+            <hr />
+
+            <h2>Sayaç: {count}</h2>
+            <button onClick={() => setCount(count + 1)}>Arttır</button>
+            <button onClick={() => setCount(count - 1)}>Azalt</button>
+
+            {count > 5 && <p>5'ten büyük oldu 🎉</p>}
+
+            <hr />
+
+            <h2>Konu Listesi</h2>
+
+            <input
+              type="text"
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              placeholder="Yeni konu ekle"
+            />
+            <button onClick={addTask}>Ekle</button>
+
+            {error && <p>{error}</p>}
+
+            <p>Toplam konu sayısı: {tasks.length}</p>
+
+            <ul>
+              {tasks.map((task, index) => (
+                <li key={index}>
+                  <span
+                    onClick={() => toggleDone(index)}
+                    style={{
+                      textDecoration: task.done ? "line-through" : "none",
+                      cursor: "pointer"
+                    }}
+                  >
+                    {task.text}
+                  </span>
+                  <button onClick={() => deleteTask(index)}>
+                    Sil
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            <button onClick={clearCompleted}>
+              Tamamlananları Temizle
+            </button>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
