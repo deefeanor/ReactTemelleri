@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>React Temelleri</title>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      // Gün 3
+      // Abdullah abi bugün listeye filtre eklemeyi denedim.
+
+      function Welcome(props) {
+        return <h3>Hoş geldin {props.name}</h3>;
+      }
+
+      function TaskItem({ task, index, toggleDone, deleteTask }) {
+        return (
+          <li>
+            <span
+              onClick={() => toggleDone(index)}
+              style={{
+                textDecoration: task.done ? "line-through" : "none",
+                cursor: "pointer"
+              }}
+            >
+              {task.text}
+            </span>
+            <button onClick={() => deleteTask(index)}>Sil</button>
+          </li>
+        );
+      }
+
+      function App() {
+        const [count, setCount] = React.useState(0);
+
+        const [tasks, setTasks] = React.useState([
+          { text: "React", done: false },
+          { text: "JSX", done: false }
+        ]);
+
+        const [newTask, setNewTask] = React.useState("");
+        const [filter, setFilter] = React.useState("all");
+
+        const addTask = () => {
+          if (newTask.trim() !== "") {
+            setTasks([...tasks, { text: newTask, done: false }]);
+            setNewTask("");
+          }
+        };
+
+        const deleteTask = (index) => {
+          setTasks(tasks.filter((_, i) => i !== index));
+        };
+
+        const toggleDone = (index) => {
+          const updated = tasks.map((task, i) =>
+            i === index ? { ...task, done: !task.done } : task
+          );
+          setTasks(updated);
+        };
+
+        const filteredTasks = tasks.filter(task => {
+          if (filter === "active") return !task.done;
+          if (filter === "completed") return task.done;
+          return true;
+        });
+
+        const completedCount = tasks.filter(task => task.done).length;
+
+        return (
+          <div>
+            <h1>React Temelleri</h1>
+            <p>Listeyi biraz daha geliştirmeye çalışıyorum.</p>
+
+            <Welcome name="Abdullah Abi" />
+
+            <hr />
+
+            <h2>Sayaç: {count}</h2>
+            <button onClick={() => setCount(count + 1)}>Arttır</button>
+            <button onClick={() => setCount(count - 1)}>Azalt</button>
+
+            {count > 5 && <p>5'ten büyük oldu 🎉</p>}
+
+            <hr />
+
+            <h2>Konu Listesi</h2>
+
+            <input
+              type="text"
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              placeholder="Yeni konu ekle"
+            />
+            <button onClick={addTask}>Ekle</button>
+
+            <p>
+              Toplam: {tasks.length} | Tamamlanan: {completedCount}
+            </p>
+
+            <div>
+              <button onClick={() => setFilter("all")}>Hepsi</button>
+              <button onClick={() => setFilter("active")}>Aktif</button>
+              <button onClick={() => setFilter("completed")}>Tamamlanan</button>
+            </div>
+
+            <ul>
+              {filteredTasks.map((task, index) => (
+                <TaskItem
+                  key={index}
+                  task={task}
+                  index={index}
+                  toggleDone={toggleDone}
+                  deleteTask={deleteTask}
+                />
+              ))}
+            </ul>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
