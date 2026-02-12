@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>React Temelleri</title>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      // Gün 4
+      // Abdullah abi bugün veriyi kaydetmeyi denedim.
+
+      function TaskItem({ task, index, toggleDone, deleteTask }) {
+        return (
+          <li>
+            <span
+              onClick={() => toggleDone(index)}
+              style={{
+                textDecoration: task.done ? "line-through" : "none",
+                cursor: "pointer"
+              }}
+            >
+              {task.text}
+            </span>
+            <button onClick={() => deleteTask(index)}>Sil</button>
+          </li>
+        );
+      }
+
+      function App() {
+        const [tasks, setTasks] = React.useState(() => {
+          const saved = localStorage.getItem("tasks");
+          return saved ? JSON.parse(saved) : [];
+        });
+
+        const [newTask, setNewTask] = React.useState("");
+
+        React.useEffect(() => {
+          localStorage.setItem("tasks", JSON.stringify(tasks));
+        }, [tasks]);
+
+        const addTask = () => {
+          if (newTask.trim() !== "") {
+            setTasks([...tasks, { text: newTask, done: false }]);
+            setNewTask("");
+          }
+        };
+
+        const deleteTask = (index) => {
+          setTasks(tasks.filter((_, i) => i !== index));
+        };
+
+        const toggleDone = (index) => {
+          const updated = tasks.map((task, i) =>
+            i === index ? { ...task, done: !task.done } : task
+          );
+          setTasks(updated);
+        };
+
+        return (
+          <div>
+            <h1>React Temelleri</h1>
+            <p>Liste artık sayfa yenilense bile kaybolmuyor.</p>
+
+            <h2>Konu Listesi</h2>
+
+            <input
+              type="text"
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              placeholder="Yeni konu ekle"
+            />
+            <button onClick={addTask}>Ekle</button>
+
+            <ul>
+              {tasks.map((task, index) => (
+                <TaskItem
+                  key={index}
+                  task={task}
+                  index={index}
+                  toggleDone={toggleDone}
+                  deleteTask={deleteTask}
+                />
+              ))}
+            </ul>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
