@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>React Temelleri</title>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      // Gün 5
+      // Abdullah abi bugün düzenleme (edit) özelliğini denedim.
+
+      function TaskItem({ task, index, toggleDone, deleteTask, updateTask }) {
+        const [isEditing, setIsEditing] = React.useState(false);
+        const [editText, setEditText] = React.useState(task.text);
+
+        const saveEdit = () => {
+          if (editText.trim() !== "") {
+            updateTask(index, editText);
+            setIsEditing(false);
+          }
+        };
+
+        return (
+          <li>
+            {isEditing ? (
+              <>
+                <input
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                />
+                <button onClick={saveEdit}>Kaydet</button>
+              </>
+            ) : (
+              <>
+                <span
+                  onClick={() => toggleDone(index)}
+                  onDoubleClick={() => setIsEditing(true)}
+                  style={{
+                    textDecoration: task.done ? "line-through" : "none",
+                    cursor: "pointer"
+                  }}
+                >
+                  {task.text}
+                </span>
+                <button onClick={() => deleteTask(index)}>Sil</button>
+              </>
+            )}
+          </li>
+        );
+      }
+
+      function App() {
+        const [tasks, setTasks] = React.useState(() => {
+          const saved = localStorage.getItem("tasks");
+          return saved ? JSON.parse(saved) : [];
+        });
+
+        const [newTask, setNewTask] = React.useState("");
+
+        React.useEffect(() => {
+          localStorage.setItem("tasks", JSON.stringify(tasks));
+        }, [tasks]);
+
+        const addTask = () => {
+          if (newTask.trim() !== "") {
+            setTasks([...tasks, { text: newTask, done: false }]);
+            setNewTask("");
+          }
+        };
+
+        const deleteTask = (index) => {
+          setTasks(tasks.filter((_, i) => i !== index));
+        };
+
+        const toggleDone = (index) => {
+          const updated = tasks.map((task, i) =>
+            i === index ? { ...task, done: !task.done } : task
+          );
+          setTasks(updated);
+        };
+
+        const updateTask = (index, newText) => {
+          const updated = tasks.map((task, i) =>
+            i === index ? { ...task, text: newText } : task
+          );
+          setTasks(updated);
+        };
+
+        return (
+          <div>
+            <h1>React Temelleri</h1>
+            <p>Listeye düzenleme özelliği eklemeyi deniyorum.</p>
+
+            <h2>Konu Listesi</h2>
+
+            <input
+              type="text"
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              placeholder="Yeni konu ekle"
+            />
+            <button onClick={addTask}>Ekle</button>
+
+            <ul>
+              {tasks.map((task, index) => (
+                <TaskItem
+                  key={index}
+                  task={task}
+                  index={index}
+                  toggleDone={toggleDone}
+                  deleteTask={deleteTask}
+                  updateTask={updateTask}
+                />
+              ))}
+            </ul>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
