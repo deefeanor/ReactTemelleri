@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>React Temelleri</title>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      // Gün 7
+      // Abdullah abi bugün yapıyı biraz daha component'lara böldüm.
+
+      function Header() {
+        return (
+          <div>
+            <h1>React Temelleri</h1>
+            <p>Kod yapısını biraz daha düzenlemeye çalışıyorum.</p>
+            <hr />
+          </div>
+        );
+      }
+
+      function Summary({ tasks }) {
+        const active = tasks.filter(t => !t.done).length;
+        const completed = tasks.filter(t => t.done).length;
+
+        return (
+          <p>
+            Aktif: {active} | Tamamlanan: {completed}
+          </p>
+        );
+      }
+
+      function TaskItem({ task, index, toggleDone, deleteTask }) {
+        return (
+          <li>
+            <span
+              onClick={() => toggleDone(index)}
+              style={{
+                textDecoration: task.done ? "line-through" : "none",
+                cursor: "pointer"
+              }}
+            >
+              {task.text}
+            </span>
+            <button onClick={() => deleteTask(index)}>Sil</button>
+          </li>
+        );
+      }
+
+      function App() {
+        const [tasks, setTasks] = React.useState(() => {
+          const saved = localStorage.getItem("tasks");
+          return saved ? JSON.parse(saved) : [];
+        });
+
+        const [newTask, setNewTask] = React.useState("");
+
+        React.useEffect(() => {
+          localStorage.setItem("tasks", JSON.stringify(tasks));
+        }, [tasks]);
+
+        const addTask = () => {
+          if (newTask.trim() !== "") {
+            setTasks([...tasks, { text: newTask, done: false }]);
+            setNewTask("");
+          }
+        };
+
+        const deleteTask = (index) => {
+          setTasks(tasks.filter((_, i) => i !== index));
+        };
+
+        const toggleDone = (index) => {
+          const updated = tasks.map((task, i) =>
+            i === index ? { ...task, done: !task.done } : task
+          );
+          setTasks(updated);
+        };
+
+        return (
+          <div>
+            <Header />
+
+            <h2>Konu Listesi</h2>
+
+            <input
+              type="text"
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              placeholder="Yeni konu ekle"
+            />
+            <button onClick={addTask}>Ekle</button>
+
+            <Summary tasks={tasks} />
+
+            {tasks.length === 0 && (
+              <p>Henüz eklenmiş konu yok.</p>
+            )}
+
+            <ul>
+              {tasks.map((task, index) => (
+                <TaskItem
+                  key={index}
+                  task={task}
+                  index={index}
+                  toggleDone={toggleDone}
+                  deleteTask={deleteTask}
+                />
+              ))}
+            </ul>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
