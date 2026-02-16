@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>React Temelleri</title>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 500px;
+      }
+
+      button {
+        margin-left: 5px;
+        padding: 5px 8px;
+      }
+
+      .done {
+        text-decoration: line-through;
+        color: gray;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      // Gün 8
+      // Abdullah abi bugün küçük bir Button component'i yaptım ve biraz stil ekledim.
+
+      function Header() {
+        return (
+          <div>
+            <h1>React Temelleri</h1>
+            <p>Yavaş yavaş yapıyı oturtmaya çalışıyorum.</p>
+            <hr />
+          </div>
+        );
+      }
+
+      function Button({ text, onClick }) {
+        return <button onClick={onClick}>{text}</button>;
+      }
+
+      function TaskItem({ task, index, toggleDone, deleteTask }) {
+        return (
+          <li>
+            <span
+              className={task.done ? "done" : ""}
+              onClick={() => toggleDone(index)}
+              style={{ cursor: "pointer" }}
+            >
+              {task.text}
+            </span>
+
+            <Button text="Sil" onClick={() => deleteTask(index)} />
+          </li>
+        );
+      }
+
+      function App() {
+        const [tasks, setTasks] = React.useState(() => {
+          const saved = localStorage.getItem("tasks");
+          return saved ? JSON.parse(saved) : [];
+        });
+
+        const [newTask, setNewTask] = React.useState("");
+
+        React.useEffect(() => {
+          localStorage.setItem("tasks", JSON.stringify(tasks));
+        }, [tasks]);
+
+        const addTask = () => {
+          if (newTask.trim() !== "") {
+            setTasks([...tasks, { text: newTask, done: false }]);
+            setNewTask("");
+          }
+        };
+
+        const deleteTask = (index) => {
+          setTasks(tasks.filter((_, i) => i !== index));
+        };
+
+        const toggleDone = (index) => {
+          const updated = tasks.map((task, i) =>
+            i === index ? { ...task, done: !task.done } : task
+          );
+          setTasks(updated);
+        };
+
+        return (
+          <div className="container">
+            <Header />
+
+            <h2>Konu Listesi</h2>
+
+            <input
+              type="text"
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              placeholder="Yeni konu ekle"
+            />
+
+            <Button text="Ekle" onClick={addTask} />
+
+            {tasks.length === 0 && (
+              <p>Henüz eklenmiş konu yok.</p>
+            )}
+
+            <ul>
+              {tasks.map((task, index) => (
+                <TaskItem
+                  key={index}
+                  task={task}
+                  index={index}
+                  toggleDone={toggleDone}
+                  deleteTask={deleteTask}
+                />
+              ))}
+            </ul>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
