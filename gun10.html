@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>React Temelleri</title>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      body {
+        font-family: Arial;
+        background: #f5f5f5;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 500px;
+      }
+
+      .done {
+        text-decoration: line-through;
+        color: gray;
+      }
+
+      .error {
+        color: red;
+      }
+
+      input {
+        margin-right: 5px;
+        padding: 5px;
+      }
+
+      button {
+        margin-right: 5px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      // Gün 10
+      // Abdullah abi bugün form mantığını biraz daha düzgün kurmaya çalıştım.
+
+      function Button({ text, type = "button" }) {
+        return <button type={type}>{text}</button>;
+      }
+
+      function TaskItem({ task, index, toggleDone, deleteTask }) {
+        return (
+          <li>
+            <span
+              className={task.done ? "done" : ""}
+              onClick={() => toggleDone(index)}
+              style={{ cursor: "pointer" }}
+            >
+              {task.text}
+            </span>
+            <button onClick={() => deleteTask(index)}>Sil</button>
+          </li>
+        );
+      }
+
+      function App() {
+        const [tasks, setTasks] = React.useState(() => {
+          const saved = localStorage.getItem("tasks");
+          return saved ? JSON.parse(saved) : [];
+        });
+
+        const [newTask, setNewTask] = React.useState("");
+        const [search, setSearch] = React.useState("");
+        const [error, setError] = React.useState("");
+
+        React.useEffect(() => {
+          localStorage.setItem("tasks", JSON.stringify(tasks));
+        }, [tasks]);
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+
+          if (newTask.trim() === "") {
+            setError("Boş görev eklememeye çalıştım.");
+            return;
+          }
+
+          setTasks([...tasks, { text: newTask, done: false }]);
+          setNewTask("");
+          setError("");
+        };
+
+        const deleteTask = (index) => {
+          setTasks(tasks.filter((_, i) => i !== index));
+        };
+
+        const toggleDone = (index) => {
+          const updated = tasks.map((task, i) =>
+            i === index ? { ...task, done: !task.done } : task
+          );
+          setTasks(updated);
+        };
+
+        const filteredTasks = tasks.filter(task =>
+          task.text.toLowerCase().includes(search.toLowerCase())
+        );
+
+        return (
+          <div className="container">
+            <h1>React Temelleri</h1>
+
+            <h2>Konu Listesi</h2>
+
+            <form onSubmit={handleSubmit}>
+              <input
+                type="text"
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+                placeholder="Yeni konu ekle"
+              />
+              <Button text="Ekle" type="submit" />
+            </form>
+
+            {error && <p className="error">{error}</p>}
+
+            <br />
+
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Listede ara..."
+            />
+
+            {filteredTasks.length === 0 && (
+              <p>Aramaya uygun sonuç bulunamadı.</p>
+            )}
+
+            <ul>
+              {filteredTasks.map((task, index) => (
+                <TaskItem
+                  key={index}
+                  task={task}
+                  index={index}
+                  toggleDone={toggleDone}
+                  deleteTask={deleteTask}
+                />
+              ))}
+            </ul>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
