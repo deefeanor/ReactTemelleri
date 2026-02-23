@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>React Temelleri</title>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      body {
+        font-family: Arial;
+        padding: 20px;
+      }
+
+      .light {
+        background: #f5f5f5;
+        color: black;
+      }
+
+      .dark {
+        background: #222;
+        color: white;
+      }
+
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 500px;
+      }
+
+      .dark .container {
+        background: #333;
+      }
+
+      .done {
+        text-decoration: line-through;
+        color: gray;
+      }
+
+      select, input {
+        margin-right: 5px;
+        padding: 5px;
+      }
+
+      button {
+        margin-right: 5px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      // Gün 14
+      // Abdullah abi bugün görevleri kategoriye ayırmayı denedim.
+
+      function useDarkMode() {
+        const [darkMode, setDarkMode] = React.useState(() => {
+          const saved = localStorage.getItem("darkMode");
+          return saved ? JSON.parse(saved) : false;
+        });
+
+        React.useEffect(() => {
+          localStorage.setItem("darkMode", JSON.stringify(darkMode));
+        }, [darkMode]);
+
+        return [darkMode, setDarkMode];
+      }
+
+      function TaskItem({ task, index, toggleDone, deleteTask }) {
+        return (
+          <li>
+            <span
+              className={task.done ? "done" : ""}
+              onClick={() => toggleDone(index)}
+              style={{ cursor: "pointer" }}
+            >
+              {task.text} ({task.category})
+            </span>
+            <button onClick={() => deleteTask(index)}>Sil</button>
+          </li>
+        );
+      }
+
+      function App() {
+        const [darkMode, setDarkMode] = useDarkMode();
+        const [tasks, setTasks] = React.useState(() => {
+          const saved = localStorage.getItem("tasks");
+          return saved ? JSON.parse(saved) : [];
+        });
+
+        const [newTask, setNewTask] = React.useState("");
+        const [category, setCategory] = React.useState("Genel");
+        const [selectedCategory, setSelectedCategory] = React.useState("Tümü");
+
+        React.useEffect(() => {
+          localStorage.setItem("tasks", JSON.stringify(tasks));
+        }, [tasks]);
+
+        const addTask = (e) => {
+          e.preventDefault();
+          if (newTask.trim() !== "") {
+            setTasks([
+              ...tasks,
+              { text: newTask, done: false, category: category }
+            ]);
+            setNewTask("");
+          }
+        };
+
+        const deleteTask = (index) => {
+          setTasks(tasks.filter((_, i) => i !== index));
+        };
+
+        const toggleDone = (index) => {
+          const updated = tasks.map((task, i) =>
+            i === index ? { ...task, done: !task.done } : task
+          );
+          setTasks(updated);
+        };
+
+        const filteredTasks = tasks.filter(task => {
+          if (selectedCategory === "Tümü") return true;
+          return task.category === selectedCategory;
+        });
+
+        return (
+          <div className={darkMode ? "dark" : "light"}>
+            <div className="container">
+              <h1>React Temelleri</h1>
+
+              <button onClick={() => setDarkMode(!darkMode)}>
+                {darkMode ? "Light Mode" : "Dark Mode"}
+              </button>
+
+              <h2>Konu Listesi</h2>
+
+              <form onSubmit={addTask}>
+                <input
+                  type="text"
+                  value={newTask}
+                  onChange={(e) => setNewTask(e.target.value)}
+                  placeholder="Yeni konu ekle"
+                />
+
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  <option>Genel</option>
+                  <option>İş</option>
+                  <option>Kişisel</option>
+                </select>
+
+                <button type="submit">Ekle</button>
+              </form>
+
+              <br />
+
+              <label>Kategori filtre: </label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                <option>Tümü</option>
+                <option>Genel</option>
+                <option>İş</option>
+                <option>Kişisel</option>
+              </select>
+
+              {filteredTasks.length === 0 && (
+                <p>Bu kategoriye ait görev yok.</p>
+              )}
+
+              <ul>
+                {filteredTasks.map((task, index) => (
+                  <TaskItem
+                    key={index}
+                    task={task}
+                    index={index}
+                    toggleDone={toggleDone}
+                    deleteTask={deleteTask}
+                  />
+                ))}
+              </ul>
+            </div>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
