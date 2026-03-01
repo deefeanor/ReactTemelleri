@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>React Performans</title>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      body { font-family: Arial; padding: 20px; }
+      .done { text-decoration: line-through; color: gray; }
+      .stats {
+        background: #eee;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+      }
+      button { margin-right: 5px; }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      // Gün 19
+      // Abdullah abi bugün performans konusuna girdim.
+
+      function taskReducer(state, action) {
+        switch (action.type) {
+          case "SET":
+            return action.payload;
+
+          case "TOGGLE":
+            return state.map((task, i) =>
+              i === action.payload
+                ? { ...task, completed: !task.completed }
+                : task
+            );
+
+          default:
+            return state;
+        }
+      }
+
+      function TaskItem({ task, index, onToggle }) {
+        console.log("Render:", task.title);
+
+        return (
+          <li>
+            <span
+              className={task.completed ? "done" : ""}
+              onClick={() => onToggle(index)}
+              style={{ cursor: "pointer" }}
+            >
+              {task.title}
+            </span>
+          </li>
+        );
+      }
+
+      function App() {
+        const [tasks, dispatch] = React.useReducer(taskReducer, []);
+        const [count, setCount] = React.useState(0);
+
+        // API fetch
+        React.useEffect(() => {
+          async function fetchData() {
+            const res = await fetch(
+              "https://jsonplaceholder.typicode.com/todos?_limit=5"
+            );
+            const data = await res.json();
+            dispatch({ type: "SET", payload: data });
+          }
+
+          fetchData();
+        }, []);
+
+        // 🔥 useCallback
+        const handleToggle = React.useCallback((index) => {
+          dispatch({ type: "TOGGLE", payload: index });
+        }, []);
+
+        // 🔥 useMemo
+        const stats = React.useMemo(() => {
+          console.log("İstatistik hesaplandı");
+
+          const total = tasks.length;
+          const completed = tasks.filter(t => t.completed).length;
+          const percent =
+            total === 0 ? 0 : Math.round((completed / total) * 100);
+
+          return { total, completed, percent };
+        }, [tasks]);
+
+        return (
+          <div>
+            <h1>Performans Denemesi</h1>
+
+            <div className="stats">
+              <p>Toplam: {stats.total}</p>
+              <p>Tamamlanan: {stats.completed}</p>
+              <p>Oran: %{stats.percent}</p>
+            </div>
+
+            <button onClick={() => setCount(count + 1)}>
+              Sayaç Artır ({count})
+            </button>
+
+            <ul>
+              {tasks.map((task, index) => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  index={index}
+                  onToggle={handleToggle}
+                />
+              ))}
+            </ul>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
