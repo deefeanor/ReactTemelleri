@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>React Router Gün 21</title>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6/umd/react-router-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      body { font-family: Arial; padding: 20px; }
+      nav a { margin-right: 10px; }
+      .done { text-decoration: line-through; color: gray; }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const {
+        BrowserRouter,
+        Routes,
+        Route,
+        Link
+      } = ReactRouterDOM;
+
+      // 🔥 Custom Hook (Gün 20’den)
+      function useFetchTasks() {
+        const [tasks, setTasks] = React.useState([]);
+
+        React.useEffect(() => {
+          async function fetchData() {
+            const res = await fetch(
+              "https://jsonplaceholder.typicode.com/todos?_limit=5"
+            );
+            const data = await res.json();
+            setTasks(data);
+          }
+
+          fetchData();
+        }, []);
+
+        return { tasks, setTasks };
+      }
+
+      function Navbar() {
+        return (
+          <nav>
+            <Link to="/">Anasayfa</Link>
+            <Link to="/stats">İstatistik</Link>
+            <Link to="/about">Hakkında</Link>
+          </nav>
+        );
+      }
+
+      function Home() {
+        const { tasks, setTasks } = useFetchTasks();
+
+        const toggle = (id) => {
+          setTasks(prev =>
+            prev.map(task =>
+              task.id === id
+                ? { ...task, completed: !task.completed }
+                : task
+            )
+          );
+        };
+
+        return (
+          <div>
+            <h2>Görevler</h2>
+            <ul>
+              {tasks.map(task => (
+                <li key={task.id}>
+                  <span
+                    className={task.completed ? "done" : ""}
+                    onClick={() => toggle(task.id)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {task.title}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      }
+
+      function Stats() {
+        const { tasks } = useFetchTasks();
+
+        const total = tasks.length;
+        const completed = tasks.filter(t => t.completed).length;
+
+        return (
+          <div>
+            <h2>İstatistik</h2>
+            <p>Toplam: {total}</p>
+            <p>Tamamlanan: {completed}</p>
+          </div>
+        );
+      }
+
+      function About() {
+        return (
+          <div>
+            <h2>Hakkında</h2>
+            <p>Bu proje React öğrenme sürecinde yapıldı.</p>
+          </div>
+        );
+      }
+
+      function App() {
+        return (
+          <BrowserRouter>
+            <Navbar />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/stats" element={<Stats />} />
+              <Route path="/about" element={<About />} />
+            </Routes>
+          </BrowserRouter>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
