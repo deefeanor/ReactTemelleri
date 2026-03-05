@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>React Router Gün 22</title>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6/umd/react-router-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      body { font-family: Arial; padding: 20px; }
+      nav a { margin-right: 10px; }
+      .done { text-decoration: line-through; color: gray; }
+      .error { color: red; }
+      button { margin-top: 10px; }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const {
+        BrowserRouter,
+        Routes,
+        Route,
+        Link,
+        Navigate
+      } = ReactRouterDOM;
+
+      function useFetchTasks() {
+        const [tasks, setTasks] = React.useState([]);
+
+        React.useEffect(() => {
+          async function fetchData() {
+            const res = await fetch(
+              "https://jsonplaceholder.typicode.com/todos?_limit=5"
+            );
+            const data = await res.json();
+            setTasks(data);
+          }
+          fetchData();
+        }, []);
+
+        return { tasks, setTasks };
+      }
+
+      function Navbar({ isLoggedIn, setIsLoggedIn }) {
+        return (
+          <nav>
+            <Link to="/">Anasayfa</Link>
+            <Link to="/stats">İstatistik</Link>
+            <Link to="/about">Hakkında</Link>
+
+            {!isLoggedIn && <Link to="/login">Login</Link>}
+
+            {isLoggedIn && (
+              <button onClick={() => setIsLoggedIn(false)}>
+                Logout
+              </button>
+            )}
+          </nav>
+        );
+      }
+
+      function ProtectedRoute({ isLoggedIn, children }) {
+        if (!isLoggedIn) {
+          return <Navigate to="/login" />;
+        }
+        return children;
+      }
+
+      function Home() {
+        const { tasks } = useFetchTasks();
+
+        return (
+          <div>
+            <h2>Görevler</h2>
+            <ul>
+              {tasks.map(task => (
+                <li key={task.id}>
+                  {task.title}
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      }
+
+      function Stats() {
+        const { tasks } = useFetchTasks();
+        return (
+          <div>
+            <h2>İstatistik</h2>
+            <p>Toplam görev: {tasks.length}</p>
+          </div>
+        );
+      }
+
+      function Login({ setIsLoggedIn }) {
+        const handleLogin = () => {
+          setIsLoggedIn(true);
+        };
+
+        return (
+          <div>
+            <h2>Login</h2>
+            <button onClick={handleLogin}>Giriş Yap</button>
+          </div>
+        );
+      }
+
+      function About() {
+        return (
+          <div>
+            <h2>Hakkında</h2>
+            <p>Bu proje React öğrenme sürecinde yapıldı.</p>
+          </div>
+        );
+      }
+
+      function App() {
+        const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+
+        return (
+          <BrowserRouter>
+            <Navbar
+              isLoggedIn={isLoggedIn}
+              setIsLoggedIn={setIsLoggedIn}
+            />
+
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute isLoggedIn={isLoggedIn}>
+                    <Home />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/stats"
+                element={
+                  <ProtectedRoute isLoggedIn={isLoggedIn}>
+                    <Stats />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route path="/about" element={<About />} />
+
+              <Route
+                path="/login"
+                element={<Login setIsLoggedIn={setIsLoggedIn} />}
+              />
+            </Routes>
+          </BrowserRouter>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
